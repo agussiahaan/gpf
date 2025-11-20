@@ -205,7 +205,8 @@ def dashboard():
     order_map = {'name': Member.name, 'commission': Member.commission, 'status': Member.status}
     order_col = order_map.get(order, Member.name)
     members = query.order_by(order_col).all()
-    return render_template('dashboard.html', members=members, q=q, selected_services=service, order=order)
+    total_members = len(members)
+    return render_template('dashboard.html', members=members, total_members=total_members, q=q, selected_services=service, order=order)
 
 @app.route('/add', methods=['GET','POST'])
 @login_required
