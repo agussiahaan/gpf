@@ -364,52 +364,7 @@ def session_timeout_check():
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib import colors
 
-@app.route('/export/pdf')
-@login_required
-def export_pdf():
-    db = get_db()
-    members = db.query(Member).all()
 
-    buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer)
-
-    data = [
-        ["No", "Nama", "Telepon", "Email", "Gender", "Tgl Lahir", "Komisi", "Pelayanan", "Status"]
-    ]
-
-    for i, m in enumerate(members, start=1):
-        birth = "-"
-        if m.birthdate:
-            birth = f"{m.birthdate[8:10]}/{m.birthdate[5:7]}/{m.birthdate[0:4]}"
-
-        data.append([
-            i,
-            m.name or "",
-            m.phone or "",
-            m.email or "",
-            m.gender or "",
-            birth,
-            m.commission or "",
-            m.services or "",
-            m.status or ""
-        ])
-
-    table = Table(data)
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.black),
-        ('FONTNAME',(0,0),(-1,0),'Helvetica-Bold'),
-        ('ALIGN',(0,0),(0,-1),'CENTER'),
-    ]))
-
-    doc.build([table])
-    buffer.seek(0)
-    return send_file(
-        buffer,
-        as_attachment=True,
-        mimetype='application/pdf',
-        download_name='gpf_members.pdf'
-    )
 
 @csrf.exempt
 @app.route('/import', methods=['GET','POST'])
@@ -474,3 +429,82 @@ def import_data():
         return redirect(url_for('dashboard'))
 
     return render_template('import.html')
+
+
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, LongTable
+from reportlab.lib.pagesizes import landscape, A4
+from reportlab.lib import colors
+from reportlab.lib.units import cm
+
+@app.route('/export/pdf')
+@login_required
+def export_pdf():
+    db = get_db()
+    members = db.query(Member).all()
+
+    buffer = BytesIO()
+
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(A4),
+        leftMargin=1*cm,
+        rightMargin=1*cm,
+        topMargin=1*cm,
+        bottomMargin=1*cm
+    )
+
+    data = [[
+        "No", "Nama", "Telepon", "Email", "Gender", "Tgl Lahir",
+        "Komisi", "Pelayanan", "Status"
+    ]]
+
+    for i, m in enumerate(members, start=1):
+        if m.birthdate:
+            birth = f"{m.birthdate[8:10]}/{m.birthdate[5:7]}/{m.birthdate[0:4]}"
+        else:
+            birth = "-"
+
+        data.append([
+            i,
+            m.name or "",
+            m.phone or "",
+            m.email or "",
+            m.gender or "",
+            birth,
+            m.commission or "",
+            m.services or "",
+            m.status or ""
+        ])
+
+    col_widths = [
+        1.2*cm,
+        3.5*cm,
+        3*cm,
+        5*cm,
+        2.5*cm,
+        2.8*cm,
+        2.8*cm,
+        5*cm,
+        3*cm
+    ]
+
+    table = LongTable(data, colWidths=col_widths)
+
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+        ('FONTNAME',(0,0),(-1,0),'Helvetica-Bold'),
+        ('GRID', (0,0), (-1,-1), 0.4, colors.black),
+        ('ALIGN',(0,0),(0,-1),'CENTER'),
+        ('VALIGN',(0,0),(-1,-1),'MIDDLE'),
+        ('FONTSIZE', (0,0), (-1,-1), 8),
+    ]))
+
+    doc.build([table])
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        as_attachment=True,
+        mimetype='application/pdf',
+        download_name='gpf_members.pdf'
+    )
