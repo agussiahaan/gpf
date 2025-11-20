@@ -190,7 +190,7 @@ def logout():
 @login_required
 def dashboard():
     q = request.args.get('q','').strip()
-    service = request.args.getlist('service')
+    
     order = request.args.get('order','name')
     gender = request.args.get('gender','')
     db = get_db()
@@ -198,20 +198,11 @@ def dashboard():
     if q:
         like = f"%{q}%"
         query = query.filter((Member.name.ilike(like)) | (Member.phone.ilike(like)) | (Member.email.ilike(like)))
-    if service:
-        pass
-    # Gender filter
-    if gender:
-        query = query.filter(Member.gender == gender)
-        # filter any service occurrence
-        conds = []
-        for s in service:
-            query = query.filter(Member.services.ilike(f"%{s}%"))
     order_map = {'name': Member.name, 'commission': Member.commission, 'status': Member.status}
     order_col = order_map.get(order, Member.name)
     members = query.order_by(order_col).all()
     total_members = len(members)
-    return render_template('dashboard.html', members=members, total_members=total_members, q=q, selected_services=service, order=order, gender=gender)
+    return render_template('dashboard.html', members=members, total_members=total_members, q=q, order=order, gender=gender)
 
 @app.route('/add', methods=['GET','POST'])
 @login_required
@@ -368,6 +359,57 @@ if __name__ == '__main__':
 def session_timeout_check():
     session.modified = True
 
+
+
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
+
+@app.route('/export/pdf')
+@login_required
+def export_pdf():
+    db = get_db()
+    members = db.query(Member).all()
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer)
+
+    data = [
+        ["No", "Nama", "Telepon", "Email", "Gender", "Tgl Lahir", "Komisi", "Pelayanan", "Status"]
+    ]
+
+    for i, m in enumerate(members, start=1):
+        birth = "-"
+        if m.birthdate:
+            birth = f"{m.birthdate[8:10]}/{m.birthdate[5:7]}/{m.birthdate[0:4]}"
+
+        data.append([
+            i,
+            m.name or "",
+            m.phone or "",
+            m.email or "",
+            m.gender or "",
+            birth,
+            m.commission or "",
+            m.services or "",
+            m.status or ""
+        ])
+
+    table = Table(data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+        ('FONTNAME',(0,0),(-1,0),'Helvetica-Bold'),
+        ('ALIGN',(0,0),(0,-1),'CENTER'),
+    ]))
+
+    doc.build([table])
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        mimetype='application/pdf',
+        download_name='gpf_members.pdf'
+    )
 
 @csrf.exempt
 @app.route('/import', methods=['GET','POST'])
