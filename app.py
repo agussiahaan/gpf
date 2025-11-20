@@ -192,12 +192,17 @@ def dashboard():
     q = request.args.get('q','').strip()
     service = request.args.getlist('service')
     order = request.args.get('order','name')
+    gender = request.args.get('gender','')
     db = get_db()
     query = db.query(Member)
     if q:
         like = f"%{q}%"
         query = query.filter((Member.name.ilike(like)) | (Member.phone.ilike(like)) | (Member.email.ilike(like)))
     if service:
+        pass
+    # Gender filter
+    if gender:
+        query = query.filter(Member.gender == gender)
         # filter any service occurrence
         conds = []
         for s in service:
@@ -206,7 +211,7 @@ def dashboard():
     order_col = order_map.get(order, Member.name)
     members = query.order_by(order_col).all()
     total_members = len(members)
-    return render_template('dashboard.html', members=members, total_members=total_members, q=q, selected_services=service, order=order)
+    return render_template('dashboard.html', members=members, total_members=total_members, q=q, selected_services=service, order=order, gender=gender)
 
 @app.route('/add', methods=['GET','POST'])
 @login_required

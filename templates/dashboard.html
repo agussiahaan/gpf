@@ -29,6 +29,23 @@
         </div>
       {% endfor %}
     </div>
+    
+    <div class="col-12">
+      <label class="form-label">Filter Jenis Kelamin</label><br>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="gender" value="Laki-laki" {% if gender == "Laki-laki" %}checked{% endif %}>
+        <label class="form-check-label">Laki-laki</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="gender" value="Perempuan" {% if gender == "Perempuan" %}checked{% endif %}>
+        <label class="form-check-label">Perempuan</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="gender" value="" {% if not gender %}checked{% endif %}>
+        <label class="form-check-label">Semua</label>
+      </div>
+    </div>
+
     <div class="col-12 text-end">
       <button class="btn btn-primary">Cari</button>
     </div>
