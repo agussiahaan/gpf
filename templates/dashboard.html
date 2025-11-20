@@ -40,11 +40,12 @@
   <div class="table-responsive">
     <table class="table table-bordered align-middle">
       <thead class="table-light">
-        <tr><th>Nama</th><th>Kontak</th><th>Jenis Kelamin</th><th>Komisi</th><th>Pelayanan</th><th>Status</th><th>Aksi</th></tr>
+        <tr><th>No</th><th>Nama</th><th>Kontak</th><th>Jenis Kelamin</th><th>Komisi</th><th>Pelayanan</th><th>Status</th><th>Aksi</th></tr>
       </thead>
       <tbody>
       {% for m in members %}
         <tr>
+          <td>{{ loop.index }}</td>
           <td>{{ m.name }}</td>
           <td>{{ m.phone or '' }}<br><small>{{ m.email or '' }}</small></td>
           <td>{{ m.gender or '' }}</td>
