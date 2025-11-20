@@ -2,23 +2,13 @@
 {% block content %}
 <div class="search-card">
   <div class="d-flex justify-content-between align-items-center mb-3">
+    <div><h4 class="mb-0">Data Anggota</h4><small class="text-muted">Daftar & filter anggota</small></div>
     <div>
-      <h4 class="mb-0">Data Anggota</h4>
-      <small class="text-muted">Daftar & filter anggota</small>
-    </div>
-    <div>
-      <a class="btn btn-outline-secondary me-2" href="{{ url_for('export_data', filetype='csv') }}">
-        <i class="bi bi-file-earmark-arrow-down"></i> CSV
-      </a>
-      <a class="btn btn-outline-secondary me-2" href="{{ url_for('export_data', filetype='xlsx') }}">
-        <i class="bi bi-file-earmark-excel"></i> Excel
-      </a>
-      <a class="btn btn-outline-secondary" href="{{ url_for('import_data') }}">
-        <i class="bi bi-upload"></i> Import
-      </a>
+      <a class="btn btn-outline-secondary me-2" href="{{ url_for('export_data', filetype='csv') }}"><i class="bi bi-file-earmark-arrow-down"></i> CSV</a>
+      <a class="btn btn-outline-secondary me-2" href="{{ url_for('export_data', filetype='xlsx') }}"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+      <a class="btn btn-outline-secondary" href="{{ url_for('import_data') }}"><i class="bi bi-upload"></i> Import</a>
     </div>
   </div>
-
   <form class="row g-3" method="get">
     <div class="col-md-9">
       <input class="form-control" name="q" placeholder="Cari berdasarkan nama, telepon, atau email..." value="{{ q }}">
@@ -30,8 +20,16 @@
         <option value="status" {% if order=='status' %}selected{% endif %}>Status</option>
       </select>
     </div>
-
-    <!-- FILTER JENIS KELAMIN -->
+    <div class="col-12">
+      <label class="form-label">Filter Jenis Pelayanan</label><br>
+      {% for s in ['Khotbah','Worship Leader','Singers','Keyboard','Gitar','Bass','Drum','User/Penatalayan','Multimedia','Soundsystem','Live Streaming'] %}
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" name="service" value="{{ s }}" {% if s in selected_services %}checked{% endif %}>
+          <label class="form-check-label">{{ s }}</label>
+        </div>
+      {% endfor %}
+    </div>
+    
     <div class="col-12">
       <label class="form-label">Filter Jenis Kelamin</label><br>
       <div class="form-check form-check-inline">
@@ -57,58 +55,34 @@
 <div class="card p-4 mt-4 shadow-sm">
   <h5>Daftar Anggota</h5>
   <p class="text-muted mb-3">Total Anggota: <strong>{{ total_members }}</strong></p>
-
   <div class="table-responsive">
     <table class="table table-bordered align-middle">
       <thead class="table-light">
-        <tr>
-          <th>No</th>
-          <th>Nama</th>
-          <th>Kontak</th>
-          <th>Jenis Kelamin</th>
-          <th>Tanggal Lahir</th>
-          <th>Komisi</th>
-          <th>Pelayanan</th>
-          <th>Status</th>
-          <th>Aksi</th>
-        </tr>
+        <tr><th>No</th><th>Nama</th><th>Alamat</th><th>Kontak</th><th>Jenis Kelamin</th><th>Tanggal Lahir</th><th>Komisi</th><th>Pelayanan</th><th>Status</th><th>Aksi</th></tr>
       </thead>
       <tbody>
-        {% for m in members %}
+      {% for m in members %}
         <tr>
           <td>{{ loop.index }}</td>
-          <td>{{ m.name }}</td>
+          <td>{{ m.name }}</td><td>{{ m.address or '-' }}</td>
           <td>{{ m.phone or '' }}<br><small>{{ m.email or '' }}</small></td>
-          <td>{{ m.gender or '' }}</td>
-          <td>
-            {% if m.birthdate %}
-              {{ m.birthdate[8:10] }}/{{ m.birthdate[5:7] }}/{{ m.birthdate[0:4] }}
-            {% else %}
-              -
-            {% endif %}
-          </td>
+          <td>{{ m.gender or '' }}</td><td>{% if m.birthdate %}{{ m.birthdate[8:10] }}/{{ m.birthdate[5:7] }}/{{ m.birthdate[0:4] }}{% else %}-{% endif %}</td>
           <td>{{ m.commission or '' }}</td>
           <td>{{ m.services or '' }}</td>
           <td>{{ m.status or '' }}</td>
           <td>
-            <a class="btn btn-sm btn-secondary" href="{{ url_for('edit_member', id=m.id) }}">
-              <i class="bi bi-pencil"></i>
-            </a>
+            <a class="btn btn-sm btn-secondary" href="{{ url_for('edit_member', id=m.id) }}"><i class="bi bi-pencil"></i></a>
             {% if session.get('role')=='admin' %}
             <form method="post" action="{{ url_for('delete_member', id=m.id) }}" style="display:inline" onsubmit="return confirm('Hapus anggota?')">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button class="btn btn-sm btn-danger">
-                <i class="bi bi-trash"></i>
-              </button>
+              <button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
             </form>
             {% endif %}
           </td>
         </tr>
-        {% else %}
-        <tr>
-          <td colspan="9" class="text-center text-muted">Belum ada data</td>
-        </tr>
-        {% endfor %}
+      {% else %}
+        <tr><td colspan="7" class="text-center text-muted">Belum ada data</td></tr>
+      {% endfor %}
       </tbody>
     </table>
   </div>
