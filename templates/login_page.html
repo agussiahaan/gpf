@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height:70vh">
+  <div class="card p-4 shadow-sm" style="width:520px">
+    <h2 class="text-center fw-bold">GPF Database</h2>
+    <p class="text-center text-muted">Galery Piano Fellowship</p>
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input class="form-control" name="username" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-control" name="password" required>
+      </div>
+      <button class="btn btn-primary w-100">Masuk</button>
+    </form>
+    <p class="text-center mt-3 text-muted">User: dibuat oleh Agus Siahaan</p>
+  </div>
+</div>
+{% endblock %}
