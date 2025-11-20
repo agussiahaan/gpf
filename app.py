@@ -389,9 +389,9 @@ def import_data():
         try:
             # baca file
             if ext == 'csv':
-                df = pd.read_csv(f)
+                df = pd.read_csv(f, dtype={'phone': str})
             else:
-                df = pd.read_excel(f)
+                df = pd.read_excel(f, dtype={'phone': str})
 
             db = get_db()
             added = 0
