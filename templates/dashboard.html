@@ -85,7 +85,13 @@
 
     <td>{{ m.commission or '' }}</td>
 
-    <td>{{ m.services or '' }}</td>
+    <td>
+    {% if m.services %}
+      {% for s in m.services.split(',') %}
+        - {{ s }}<br>
+      {% endfor %}
+    {% else %}-{% endif %}
+</td>
 
     <td>{{ m.status or '' }}</td>
 
