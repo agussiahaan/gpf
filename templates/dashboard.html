@@ -6,6 +6,7 @@
     <div>
       <a class="btn btn-outline-secondary me-2" href="{{ url_for('export_data', filetype='csv') }}"><i class="bi bi-file-earmark-arrow-down"></i> CSV</a>
       <a class="btn btn-outline-secondary me-2" href="{{ url_for('export_data', filetype='xlsx') }}"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+      <a class="btn btn-outline-secondary me-2" href="{{ url_for('export_pdf') }}"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
       <a class="btn btn-outline-secondary" href="{{ url_for('import_data') }}"><i class="bi bi-upload"></i> Import</a>
     </div>
   </div>
@@ -61,22 +62,19 @@
       <small>{{ m.email or '' }}</small>
     </td>
 
-    <td>{{ m.gender or '' }}</td>
-
-    <td>
-  {% if m.birthdate %}
-    {% set hasil = hitung_umur(m.birthdate).split(' ') %}
-    {{ hasil[0] }} Thn<br>
-    {{ hasil[2] }} Bln
-  {% else %}-{% endif %}
+    <td>{{ m.gender or '' }}
 </td>
-
-    <td>
-  {% if m.birthdate %}
-    {% set hasil = hitung_umur(m.birthdate).split(' ') %}
-    {{ hasil[0] }} Thn<br>
-    {{ hasil[2] }} Bln
-  {% else %}-{% endif %}
+<td>
+{% if m.birthdate %}
+  {{ m.birthdate[8:10] }}/{{ m.birthdate[5:7] }}/{{ m.birthdate[0:4] }}
+{% else %}-{% endif %}
+</td>
+<td>
+{% if m.birthdate %}
+  {% set hasil = hitung_umur(m.birthdate).split(' ') %}
+  {{ hasil[0] }} Thn<br>
+  {{ hasil[2] }} Bln
+{% else %}-{% endif %}
 </td>
 
     <td>{{ m.commission or '' }}</td>
