@@ -2,95 +2,106 @@
 {% block content %}
 <div class="container py-4">
   <h2>Tambah Anggota</h2>
+
   <form method="post">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}
-{% set errors = errors or {} %}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% set errors = errors or {} %}
+
     <div class="mb-3">
       <label class="form-label">Nama</label>
-      <input type="text" name="name" class="form-control {% if errors.get("name") %}is-invalid" required>
+      <input type="text" name="name" class="form-control {% if errors.get('name') %}is-invalid{% endif %}" required>
+      {% if errors.get('name') %}
+      <div class="invalid-feedback">Wajib diisi</div>
+      {% endif %}
     </div>
+
     <div class="mb-3 row">
       <div class="col">
         <label class="form-label">Telepon</label>
-        <input type="text" name="phone" class="form-control {% if errors.get("phone") %}is-invalid" required>
+        <input type="text" name="phone" class="form-control {% if errors.get('phone') %}is-invalid{% endif %}" required>
+        {% if errors.get('phone') %}
+        <div class="invalid-feedback">Wajib diisi</div>
+        {% endif %}
       </div>
       <div class="col">
         <label class="form-label">Email</label>
         <input type="email" name="email" class="form-control">
       </div>
     </div>
+
     <div class="mb-3 row">
       <div class="col">
         <label class="form-label">Tanggal Lahir</label>
-        <input type="date" name="birthdate" class="form-control {% if errors.get("birthdate") %}is-invalid" required>
+        <input type="date" name="birthdate" class="form-control {% if errors.get('birthdate') %}is-invalid{% endif %}" required>
+        {% if errors.get('birthdate') %}
+        <div class="invalid-feedback">Wajib diisi</div>
+        {% endif %}
       </div>
+
       <div class="col">
         <label class="form-label">Jenis Kelamin</label>
-        <select name="gender" class="form-select {% if errors.get("gender") %}is-invalid" required>
+        <select name="gender" class="form-select {% if errors.get('gender') %}is-invalid{% endif %}" required>
           <option value="">-- Pilih --</option>
           <option value="Laki-laki">Laki-laki</option>
           <option value="Perempuan">Perempuan</option>
         </select>
+        {% if errors.get('gender') %}
+        <div class="invalid-feedback">Wajib diisi</div>
+        {% endif %}
       </div>
     </div>
+
     <div class="mb-3 row">
       <div class="col">
         <label class="form-label">Komisi</label>
-        
-
-
-<select name="komisi" class="form-select {% if errors.get('komisi') %}is-invalid{% endif %}" required>
-    <option value="">-- Pilih Komisi --</option>
-    <option value="Umum">Umum</option>
-    <option value="Youth">Youth</option>
-    <option value="Kids">Kids</option>
-</select>
-{% if errors.get('komisi') %}
-  <div class="invalid-feedback">Wajib diisi</div>
-{% endif %}
-
-
-{% if errors.get('komisi') %}
-  <div class="invalid-feedback">Wajib diisi</div>
-
-    
+        <select name="komisi" class="form-select {% if errors.get('komisi') %}is-invalid{% endif %}" required>
+          <option value="">-- Pilih Komisi --</option>
+          <option value="Umum">Umum</option>
+          <option value="Youth">Youth</option>
+          <option value="Kids">Kids</option>
+        </select>
+        {% if errors.get('komisi') %}
+        <div class="invalid-feedback">Wajib diisi</div>
+        {% endif %}
       </div>
+
       <div class="col">
         <label class="form-label">Status</label>
-        
-
-<select name="status" class="form-select {% if errors.get('status') %}is-invalid{% endif %}" required>
-    <option value="">-- Pilih Status --</option>
-    <option value="Belum Menikah">Belum Menikah</option>
-    <option value="Menikah">Menikah</option>
-    <option value="Janda/Duda">Janda/Duda</option>
-</select>
-{% if errors.get('status') %}
-  <div class="invalid-feedback">Wajib diisi</div>
-{% endif %}
-
-
+        <select name="status" class="form-select {% if errors.get('status') %}is-invalid{% endif %}" required>
+          <option value="">-- Pilih Status --</option>
+          <option value="Belum Menikah">Belum Menikah</option>
+          <option value="Menikah">Menikah</option>
+          <option value="Janda/Duda">Janda/Duda</option>
+        </select>
+        {% if errors.get('status') %}
+        <div class="invalid-feedback">Wajib diisi</div>
+        {% endif %}
       </div>
     </div>
+
     <div class="mb-3">
       <label class="form-label">Alamat</label>
       <textarea name="address" class="form-control" rows="2"></textarea>
     </div>
+
     <div class="mb-3">
       <label class="form-label">Pelayanan</label><br>
       {% for val in services_list %}
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="checkbox" name="services" value="{{ val }}">
-          <label class="form-check-label">{{ val }}</label>
-        </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="services" value="{{ val }}">
+        <label class="form-check-label">{{ val }}</label>
+      </div>
       {% endfor %}
     </div>
+
     <div class="mb-3">
       <label class="form-label">Notes</label>
       <textarea name="notes" class="form-control" rows="3"></textarea>
     </div>
+
     <button class="btn btn-primary" type="submit">Simpan</button>
     <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Batal</a>
+
   </form>
 </div>
 {% endblock %}
