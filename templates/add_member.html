@@ -3,15 +3,16 @@
 <div class="container py-4">
   <h2>Tambah Anggota</h2>
   <form method="post">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}
+{% set errors = errors or {} %}">
     <div class="mb-3">
       <label class="form-label">Nama</label>
-      <input type="text" name="name" class="form-control" required>
+      <input type="text" name="name" class="form-control {% if errors.get("name") %}is-invalid{% endif %}" required>
     </div>
     <div class="mb-3 row">
       <div class="col">
         <label class="form-label">Telepon</label>
-        <input type="text" name="phone" class="form-control">
+        <input type="text" name="phone" class="form-control {% if errors.get("phone") %}is-invalid{% endif %}" required>
       </div>
       <div class="col">
         <label class="form-label">Email</label>
@@ -21,11 +22,11 @@
     <div class="mb-3 row">
       <div class="col">
         <label class="form-label">Tanggal Lahir</label>
-        <input type="date" name="birthdate" class="form-control">
+        <input type="date" name="birthdate" class="form-control {% if errors.get("birthdate") %}is-invalid{% endif %}" required>
       </div>
       <div class="col">
         <label class="form-label">Jenis Kelamin</label>
-        <select name="gender" class="form-select">
+        <select name="gender" class="form-select {% if errors.get("gender") %}is-invalid{% endif %}" required>
           <option value="">-- Pilih --</option>
           <option value="Laki-laki">Laki-laki</option>
           <option value="Perempuan">Perempuan</option>
@@ -35,7 +36,7 @@
     <div class="mb-3 row">
       <div class="col">
         <label class="form-label">Komisi</label>
-        <select name="komisi" class="form-select">
+        <select name="komisi" class="form-select {% if errors.get("komisi") %}is-invalid{% endif %}" required>
           <option value="">-- Pilih Komisi --</option>
           <option value="Umum">Umum</option>
           <option value="Youth">Youth</option>
@@ -44,7 +45,7 @@
       </div>
       <div class="col">
         <label class="form-label">Status</label>
-        <select name="status" class="form-select">
+        <select name="status" class="form-select {% if errors.get("status") %}is-invalid{% endif %}" required>
           <option value="">-- Pilih Status --</option>
           <option value="Belum Menikah">Belum Menikah</option>
           <option value="Menikah">Menikah</option>

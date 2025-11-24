@@ -231,6 +231,23 @@ def dashboard():
 @app.route('/add', methods=['GET','POST'])
 @login_required
 def add_member():
+    errors = {}
+    if request.method == 'POST':
+        name = request.form.get("name","").strip()
+        phone = request.form.get("phone","").strip()
+        birthdate = request.form.get("birthdate","").strip()
+        gender = request.form.get("gender","").strip()
+        commission = request.form.get("komisi","").strip()
+        status = request.form.get("status","").strip()
+        if not name: errors["name"]=True
+        if not phone: errors["phone"]=True
+        if not birthdate: errors["birthdate"]=True
+        if not gender: errors["gender"]=True
+        if not commission: errors["komisi"]=True
+        if not status: errors["status"]=True
+        if errors:
+            return render_template("add_member.html", errors=errors)
+
     services_list = ['Worship Leader','Singer','Usher / Penatalayan','Keyboard','Gitar','Bass','Drum','Multimedia','Soundsystem','Live Streaming','Lainnya']
     if request.method == 'POST':
         name = request.form.get('name')
