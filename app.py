@@ -10,7 +10,6 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 from io import BytesIO
 import pandas as pd
-import re
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -95,7 +94,7 @@ class MemberForm(FlaskForm):
     email = StringField('Email', validators=[Optional(), Email(), Length(max=200)])
     birthdate = DateField('Tanggal Lahir', validators=[Optional()], format='%Y-%m-%d')
     gender = SelectField('Jenis Kelamin', choices=[('','Pilih Jenis Kelamin'),('Laki-laki','Laki-laki'),('Perempuan','Perempuan')], validators=[Optional()])
-    commission = SelectField('Komisi', choices=[('', 'Pilih Komisi'),('Umum','Umum'),('Youth','Youth'),('Kids','Kids')], validators=[Optional()])
+    commission = SelectField('Komisi', choices=[('','Pilih Komisi'),('Piano','Piano'),('Vokal','Vokal'),('Musik','Musik')], validators=[Optional()])
     status = SelectField('Status', choices=[('','Pilih Status'),('Aktif','Aktif'),('Tidak Aktif','Tidak Aktif')], validators=[Optional()])
     address = TextAreaField('Alamat', validators=[Optional(), Length(max=1000)])
     services = MultiCheckboxField('Jenis Pelayanan', choices=[('Worship Leader','Worship Leader'),('Singer','Singer'),('Usher / Penatalayan','Usher / Penatalayan'),('Keyboard','Keyboard'),('Gitar','Gitar'),('Bass','Bass'),('Drum','Drum'),('Multimedia','Multimedia'),('Soundsystem','Soundsystem'),('Live Streaming','Live Streaming'),('Lainnya','Lainnya')], validators=[Optional()])
@@ -112,16 +111,9 @@ class ImportForm(FlaskForm):
 # helpers
 
 
-def normalize_phone(phone):
-    if not phone:
-        return ''
-    return re.sub(r'\D', '', str(phone))
-
 def phone_exists(phone):
-    phone_n = normalize_phone(phone)
-    db = get_db()
-    return db.query(Member).filter(Member.phone == phone_n).first() is not None
-
+    db=get_db()
+    return db.query(Member).filter(Member.phone==phone).first() is not None
 
 def get_db():
     return SessionLocal()
@@ -129,18 +121,9 @@ def get_db():
 def get_user_by_credentials(username, password):
     db = get_db()
     u = db.query(User).filter(User.username==username).first()
-    if not u:
-        return None
-    # try hashed password check, fallback to plain-text comparison if hashing was not used
-    try:
-        if check_password_hash(u.password, password):
-            return u
-    except Exception:
-        # fallback for non-hashed legacy passwords
-        if u.password == password:
-            return u
+    if u and check_password_hash(u.password, password):
+        return u
     return None
-
 
 # auth
 from functools import wraps
@@ -190,19 +173,32 @@ def logout():
 @login_required
 def dashboard():
     q = request.args.get('q','').strip()
-    
+    service = request.args.getlist('service')
     order = request.args.get('order','name')
-    gender = request.args.get('gender','')
     db = get_db()
     query = db.query(Member)
     if q:
         like = f"%{q}%"
         query = query.filter((Member.name.ilike(like)) | (Member.phone.ilike(like)) | (Member.email.ilike(like)))
+    if service:
+        # filter any service occurrence
+        conds = []
+        for s in service:
+            query = query.filter(Member.services.ilike(f"%{s}%"))
     order_map = {'name': Member.name, 'commission': Member.commission, 'status': Member.status}
     order_col = order_map.get(order, Member.name)
-    members = query.order_by(order_col).all()
-    total_members = len(members)
-    return render_template('dashboard.html', members=members, total_members=total_members, q=q, order=order, gender=gender)
+    # support sorting by umur (age) computed from birthdate
+    if order == 'umur':
+        members = query.all()
+        def _age(m):
+            try:
+                return datetime.now().year - int((m.birthdate or '')[:4])
+            except Exception:
+                return -9999
+        members.sort(key=_age, reverse=True)
+    else:
+        members = query.order_by(order_col).all()
+    return render_template('dashboard.html', members=members, q=q, selected_services=service, order=order)
 
 @app.route('/add', methods=['GET','POST'])
 @login_required
@@ -211,7 +207,6 @@ def add_member():
     if request.method == 'POST':
         name = request.form.get('name')
         phone = request.form.get('phone')
-        phone = normalize_phone(phone)
         email = request.form.get('email')
         birthdate = request.form.get('birthdate') or None
         gender = request.form.get('gender')
@@ -232,7 +227,7 @@ def add_member():
     # render page with empty form
     return render_template('add_member.html', services_list=services_list, selected_services=selected_services)
 @app.route('/member/<int:id>/edit', methods=['GET','POST'])
-
+@login_required
 def edit_member(id):
     services_list = ['Worship Leader','Singer','Usher / Penatalayan','Keyboard','Gitar','Bass','Drum','Multimedia','Soundsystem','Live Streaming','Lainnya']
     db = get_db()
@@ -240,49 +235,21 @@ def edit_member(id):
     if not m:
         flash('Anggota tidak ditemukan','danger')
         return redirect(url_for('dashboard'))
-
     if request.method == 'POST':
-        # collect form data first (do not assign directly to model until validated)
-        name = request.form.get('name')
-        phone_raw = request.form.get('phone')
-        phone = normalize_phone(phone_raw)
-        email = request.form.get('email')
-        birthdate = request.form.get('birthdate') or None
-        gender = request.form.get('gender')
-        commission = request.form.get('commission')
-        status = request.form.get('status')
-        address = request.form.get('address')
+        m.name = request.form.get('name')
+        m.phone = request.form.get('phone')
+        m.email = request.form.get('email')
+        m.birthdate = request.form.get('birthdate') or None
+        m.gender = request.form.get('gender')
+        m.commission = request.form.get('commission')
+        m.status = request.form.get('status')
+        m.address = request.form.get('address')
         services = request.form.getlist('services') or []
-        notes = request.form.get('notes')
-
-        # validate phone uniqueness (avoid assigning duplicate to another member)
-        if phone:
-            existing = db.query(Member).filter(Member.phone == phone, Member.id != m.id).first()
-            if existing:
-                flash('Nomor telepon sudah digunakan oleh anggota lain. Perubahan dibatalkan.','warning')
-                return redirect(url_for('edit_member', id=id))
-
-        # apply updates
-        m.name = name
-        m.phone = phone
-        m.email = email
-        m.birthdate = birthdate
-        m.gender = gender
-        m.commission = commission
-        m.status = status
-        m.address = address
         m.services = ','.join(services)
-        m.notes = notes
-
-        try:
-            db.add(m)
-            db.commit()
-            flash('Anggota diperbarui','success')
-        except Exception as e:
-            db.rollback()
-            flash('Gagal memperbarui anggota: ' + str(e), 'danger')
+        m.notes = request.form.get('notes')
+        db.add(m); db.commit()
+        flash('Anggota diperbarui','success')
         return redirect(url_for('dashboard'))
-
     # GET: prepopulate values
     selected_services = m.services.split(',') if m.services else []
     return render_template('edit_member.html', member=m, services_list=services_list, selected_services=selected_services)
@@ -360,12 +327,6 @@ def session_timeout_check():
     session.modified = True
 
 
-
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
-from reportlab.lib import colors
-
-
-
 @csrf.exempt
 @app.route('/import', methods=['GET','POST'])
 @login_required
@@ -386,17 +347,16 @@ def import_data():
         try:
             # baca file
             if ext == 'csv':
-                df = pd.read_csv(f, dtype={'phone': str})
+                df = pd.read_csv(f)
             else:
-                df = pd.read_excel(f, dtype={'phone': str})
+                df = pd.read_excel(f)
 
             db = get_db()
             added = 0
             skipped = 0
 
             for _, row in df.iterrows():
-                phone = str(row.get('phone'))
-                phone = normalize_phone(phone)
+                phone = str(row.get('phone')).strip()
 
                 # skip jika nomor telepon duplikat
                 if phone_exists(phone):
@@ -429,82 +389,3 @@ def import_data():
         return redirect(url_for('dashboard'))
 
     return render_template('import.html')
-
-
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, LongTable
-from reportlab.lib.pagesizes import landscape, A4
-from reportlab.lib import colors
-from reportlab.lib.units import cm
-
-@app.route('/export/pdf')
-@login_required
-def export_pdf():
-    db = get_db()
-    members = db.query(Member).all()
-
-    buffer = BytesIO()
-
-    doc = SimpleDocTemplate(
-        buffer,
-        pagesize=landscape(A4),
-        leftMargin=1*cm,
-        rightMargin=1*cm,
-        topMargin=1*cm,
-        bottomMargin=1*cm
-    )
-
-    data = [[
-        "No", "Nama", "Telepon", "Email", "Gender", "Tgl Lahir",
-        "Komisi", "Pelayanan", "Status"
-    ]]
-
-    for i, m in enumerate(members, start=1):
-        if m.birthdate:
-            birth = f"{m.birthdate[8:10]}/{m.birthdate[5:7]}/{m.birthdate[0:4]}"
-        else:
-            birth = "-"
-
-        data.append([
-            i,
-            m.name or "",
-            m.phone or "",
-            m.email or "",
-            m.gender or "",
-            birth,
-            m.commission or "",
-            m.services or "",
-            m.status or ""
-        ])
-
-    col_widths = [
-        1.2*cm,
-        3.5*cm,
-        3*cm,
-        5*cm,
-        2.5*cm,
-        2.8*cm,
-        2.8*cm,
-        5*cm,
-        3*cm
-    ]
-
-    table = LongTable(data, colWidths=col_widths)
-
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
-        ('FONTNAME',(0,0),(-1,0),'Helvetica-Bold'),
-        ('GRID', (0,0), (-1,-1), 0.4, colors.black),
-        ('ALIGN',(0,0),(0,-1),'CENTER'),
-        ('VALIGN',(0,0),(-1,-1),'MIDDLE'),
-        ('FONTSIZE', (0,0), (-1,-1), 8),
-    ]))
-
-    doc.build([table])
-    buffer.seek(0)
-
-    return send_file(
-        buffer,
-        as_attachment=True,
-        mimetype='application/pdf',
-        download_name='gpf_members.pdf'
-    )
