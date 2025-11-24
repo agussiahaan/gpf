@@ -7,12 +7,12 @@
 {% set errors = errors or {} %}">
     <div class="mb-3">
       <label class="form-label">Nama</label>
-      <input type="text" name="name" class="form-control {% if errors.get("name") %}is-invalid{% endif %}" required>
+      <input type="text" name="name" class="form-control {% if errors.get("name") %}is-invalid" required>
     </div>
     <div class="mb-3 row">
       <div class="col">
         <label class="form-label">Telepon</label>
-        <input type="text" name="phone" class="form-control {% if errors.get("phone") %}is-invalid{% endif %}" required>
+        <input type="text" name="phone" class="form-control {% if errors.get("phone") %}is-invalid" required>
       </div>
       <div class="col">
         <label class="form-label">Email</label>
@@ -22,11 +22,11 @@
     <div class="mb-3 row">
       <div class="col">
         <label class="form-label">Tanggal Lahir</label>
-        <input type="date" name="birthdate" class="form-control {% if errors.get("birthdate") %}is-invalid{% endif %}" required>
+        <input type="date" name="birthdate" class="form-control {% if errors.get("birthdate") %}is-invalid" required>
       </div>
       <div class="col">
         <label class="form-label">Jenis Kelamin</label>
-        <select name="gender" class="form-select {% if errors.get("gender") %}is-invalid{% endif %}" required>
+        <select name="gender" class="form-select {% if errors.get("gender") %}is-invalid" required>
           <option value="">-- Pilih --</option>
           <option value="Laki-laki">Laki-laki</option>
           <option value="Perempuan">Perempuan</option>
@@ -38,27 +38,37 @@
         <label class="form-label">Komisi</label>
         
 
-<select name="komisi" class="form-select" required>
-    <option value="">-- Pilih Komisi --</option>
-    <option value="Umum" {% if member.commission=='Umum' %}selected{% endif %}>Umum</option>
-    <option value="Youth" {% if member.commission=='Youth' %}selected{% endif %}>Youth</option>
-    <option value="Kids" {% if member.commission=='Kids' %}selected{% endif %}>Kids</option>
-</select>
 
+<select name="komisi" class="form-select {% if errors.get('komisi') %}is-invalid{% endif %}" required>
+    <option value="">-- Pilih Komisi --</option>
+    <option value="Umum">Umum</option>
+    <option value="Youth">Youth</option>
+    <option value="Kids">Kids</option>
+</select>
 {% if errors.get('komisi') %}
   <div class="invalid-feedback">Wajib diisi</div>
 {% endif %}
+
+
+{% if errors.get('komisi') %}
+  <div class="invalid-feedback">Wajib diisi</div>
+
     
       </div>
       <div class="col">
         <label class="form-label">Status</label>
         
-<select name="status" class="form-select" required>
+
+<select name="status" class="form-select {% if errors.get('status') %}is-invalid{% endif %}" required>
     <option value="">-- Pilih Status --</option>
-    <option value="Belum Menikah" {% if member.status=='Belum Menikah' %}selected{% endif %}>Belum Menikah</option>
-    <option value="Menikah" {% if member.status=='Menikah' %}selected{% endif %}>Menikah</option>
-    <option value="Janda/Duda" {% if member.status=='Janda/Duda' %}selected{% endif %}>Janda/Duda</option>
+    <option value="Belum Menikah">Belum Menikah</option>
+    <option value="Menikah">Menikah</option>
+    <option value="Janda/Duda">Janda/Duda</option>
 </select>
+{% if errors.get('status') %}
+  <div class="invalid-feedback">Wajib diisi</div>
+{% endif %}
+
 
       </div>
     </div>
