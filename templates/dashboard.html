@@ -72,16 +72,20 @@
     <td>{{ m.gender or '' }}</td>
 
     <td>
-      {% if m.birthdate %}
-        {{ m.birthdate[8:10] }}/{{ m.birthdate[5:7] }}/{{ m.birthdate[0:4] }}
-      {% else %}-{% endif %}
-    </td>
+  {% if m.birthdate %}
+    {% set hasil = hitung_umur(m.birthdate).split(' ') %}
+    {{ hasil[0] }} Thn<br>
+    {{ hasil[2] }} Bln
+  {% else %}-{% endif %}
+</td>
 
     <td>
-      {% if m.birthdate %}
-        {{ hitung_umur(m.birthdate) }}
-      {% else %}-{% endif %}
-    </td>
+  {% if m.birthdate %}
+    {% set hasil = hitung_umur(m.birthdate).split(' ') %}
+    {{ hasil[0] }} Thn<br>
+    {{ hasil[2] }} Bln
+  {% else %}-{% endif %}
+</td>
 
     <td>{{ m.commission or '' }}</td>
 
