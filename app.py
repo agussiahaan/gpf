@@ -455,7 +455,7 @@ def export_pdf():
     )
 
     data = [[
-        "No", "Nama", "Alamat", "Telepon", "Email", "Gender", "Tgl Lahir",
+        "No", "Nama", "Alamat", "Telepon", "Email", "Jenis Kelamin", "Tgl Lahir",
         "Umur", "Komisi", "Pelayanan", "Status"
     ]]
 
