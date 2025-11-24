@@ -30,6 +30,24 @@ class User(Base):
     role = Column(String(50), default='user')
     created_at = Column(String(50))
 
+
+def hitung_umur(birth):
+    try:
+        from datetime import datetime
+        dt = datetime.strptime(birth, "%Y-%m-%d")
+        now = datetime.now()
+        tahun = now.year - dt.year
+        bulan = now.month - dt.month
+        if bulan < 0:
+            tahun -= 1
+            bulan += 12
+        return f"{tahun} Tahun {bulan} Bulan"
+    except:
+        return "-"
+
+@app.context_processor
+def inject_functions():
+    return {'hitung_umur': hitung_umur}
 class Member(Base):
     __tablename__ = 'members'
     id = Column(Integer, primary_key=True)
