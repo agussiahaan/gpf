@@ -36,12 +36,17 @@
     <div class="mb-3 row">
       <div class="col">
         <label class="form-label">Komisi</label>
-        <select name="komisi" class="form-select {% if errors.get("komisi") %}is-invalid{% endif %}" required>
-          <option value="">-- Pilih Komisi --</option>
-          <option value="Umum">Umum</option>
-          <option value="Youth">Youth</option>
-          <option value="Kids">Kids</option>
-        </select>
+        
+<select name="komisi" class="form-select {% if errors.get('komisi') %}is-invalid{% endif %}" required>
+    <option value="">-- Pilih Komisi --</option>
+    <option value="Umum">Umum</option>
+    <option value="Youth">Youth</option>
+    <option value="Kids">Kids</option>
+</select>
+{% if errors.get('komisi') %}
+  <div class="invalid-feedback">Wajib diisi</div>
+{% endif %}
+    
       </div>
       <div class="col">
         <label class="form-label">Status</label>
