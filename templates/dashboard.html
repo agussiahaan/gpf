@@ -41,31 +41,72 @@
   <div class="table-responsive">
     <table class="table table-bordered align-middle">
       <thead class="table-light">
-        <tr><th>Nama</th><th>Kontak</th><th>Jenis Kelamin</th><th>Komisi</th><th>Pelayanan</th><th>Status</th><th>Aksi</th></tr>
+        <tr>
+          <th>No</th>
+          <th>Nama</th>
+          <th>Alamat</th>
+          <th>Kontak</th>
+          <th>Jenis Kelamin</th>
+          <th>Tgl Lahir</th>
+          <th>Umur</th>
+          <th>Komisi</th>
+          <th>Pelayanan</th>
+          <th>Status</th>
+          <th>Aksi</th>
+        </tr>
       </thead>
       <tbody>
-      {% for m in members %}
-        <tr>
-          <td>{{ m.name }}</td>
-          <td>{{ m.phone or '' }}<br><small>{{ m.email or '' }}</small></td>
-          <td>{{ m.gender or '' }}</td>
-          <td>{{ m.commission or '' }}</td>
-          <td>{{ m.services or '' }}</td>
-          <td>{{ m.status or '' }}</td>
-          <td>
-            <a class="btn btn-sm btn-secondary" href="{{ url_for('edit_member', id=m.id) }}"><i class="bi bi-pencil"></i></a>
-            {% if session.get('role')=='admin' %}
-            <form method="post" action="{{ url_for('delete_member', id=m.id) }}" style="display:inline" onsubmit="return confirm('Hapus anggota?')">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
-            </form>
-            {% endif %}
-          </td>
-        </tr>
-      {% else %}
-        <tr><td colspan="7" class="text-center text-muted">Belum ada data</td></tr>
-      {% endfor %}
-      </tbody>
+{% for m in members %}
+  <tr>
+    <td>{{ loop.index }}</td>
+
+    <td>{{ m.name }}</td>
+
+    <td>{{ m.address or '-' }}</td>
+
+    <td>
+      {{ m.phone or '' }}<br>
+      <small>{{ m.email or '' }}</small>
+    </td>
+
+    <td>{{ m.gender or '' }}</td>
+
+    <td>
+      {% if m.birthdate %}
+        {{ m.birthdate[8:10] }}/{{ m.birthdate[5:7] }}/{{ m.birthdate[0:4] }}
+      {% else %}-{% endif %}
+    </td>
+
+    <td>
+      {% if m.birthdate %}
+        {{ hitung_umur(m.birthdate) }}
+      {% else %}-{% endif %}
+    </td>
+
+    <td>{{ m.commission or '' }}</td>
+
+    <td>{{ m.services or '' }}</td>
+
+    <td>{{ m.status or '' }}</td>
+
+    <td>
+      <a class="btn btn-sm btn-secondary" href="{{ url_for('edit_member', id=m.id) }}">
+        <i class="bi bi-pencil"></i>
+      </a>
+
+      {% if session.get('role')=='admin' %}
+      <form method="post" action="{{ url_for('delete_member', id=m.id) }}"
+            style="display:inline" onsubmit="return confirm('Hapus anggota?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-sm btn-danger">
+          <i class="bi bi-trash"></i>
+        </button>
+      </form>
+      {% endif %}
+    </td>
+  </tr>
+{% endfor %}
+</tbody>
     </table>
   </div>
 </div>
