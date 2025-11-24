@@ -21,15 +21,7 @@
         <option value="umur" {% if order=='umur' %}selected{% endif %}>Umur</option>
       </select>
     </div>
-    <div class="col-12">
-      <label class="form-label">Filter Jenis Pelayanan</label><br>
-      {% for s in ['Khotbah','Worship Leader','Singers','Keyboard','Gitar','Bass','Drum','User/Penatalayan','Multimedia','Soundsystem','Live Streaming'] %}
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="checkbox" name="service" value="{{ s }}" {% if s in selected_services %}checked{% endif %}>
-          <label class="form-check-label">{{ s }}</label>
-        </div>
-      {% endfor %}
-    </div>
+    
     <div class="col-12 text-end">
       <button class="btn btn-primary">Cari</button>
     </div>
