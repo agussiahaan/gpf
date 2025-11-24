@@ -47,7 +47,7 @@
       <textarea name="address" class="form-control" rows="2">{{ member.address }}</textarea>
     </div>
     <div class="mb-3">
-      <label class="form-label">Layanan / Services</label><br>
+      <label class="form-label">Pelayanan</label><br>
       {% for val in services_list %}
         <div class="form-check form-check-inline">
           <input class="form-check-input" type="checkbox" name="services" value="{{ val }}" {% if val in selected_services %}checked{% endif %}>
