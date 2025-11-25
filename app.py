@@ -82,29 +82,6 @@ create_default_admin()
 
 # Flask app
 app = Flask(__name__)
-
-from functools import wraps
-from flask import abort
-
-def admin_only(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        if session.get('role') != 'admin':
-            abort(403)
-        return f(*args, **kwargs)
-    return wrapper
-
-@app.before_request
-def ensure_role():
-    if session.get('username') and not session.get('role'):
-        if session.get('username') == 'admin':
-            session['role'] = 'admin'
-        elif session.get('username') == 'user':
-            session['role'] = 'user'
-        else:
-            session.setdefault('role', 'user')
-
-
 from datetime import timedelta
 app.permanent_session_lifetime = timedelta(minutes=10)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY','dev_secret_change_me')
@@ -209,7 +186,6 @@ def login():
         if u:
             session['user_id'] = u.id
             session['username'] = u.username
-        session['role'] = 'admin' if session.get('username')=='admin' else 'user'
             session['role'] = u.role
             flash('Berhasil login','success')
             return redirect(url_for('dashboard'))
@@ -254,7 +230,6 @@ def dashboard():
 
 @app.route('/add', methods=['GET','POST'])
 @login_required
-@admin_only
 def add_member():
     errors = {}
     if request.method == 'POST':
@@ -298,7 +273,6 @@ def add_member():
     return render_template('add_member.html', services_list=services_list, selected_services=selected_services)
 @app.route('/member/<int:id>/edit', methods=['GET','POST'])
 @login_required
-@admin_only
 def edit_member(id):
     services_list = ['Worship Leader','Singer','Usher / Penatalayan','Keyboard','Gitar','Bass','Drum','Multimedia','Soundsystem','Live Streaming','Lainnya']
     db = get_db()
@@ -345,7 +319,6 @@ def users():
 
 @app.route('/member/<int:id>/delete', methods=['POST'])
 @admin_required
-@admin_only
 def delete_member(id):
     db = get_db()
     m = db.query(Member).get(id)
@@ -358,7 +331,6 @@ def delete_member(id):
 ALLOWED_EXT = {'csv','xlsx'}
 @app.route('/export/<filetype>')
 @login_required
-@admin_only
 def export_data(filetype):
     db = get_db()
     members = db.query(Member).all()
@@ -403,7 +375,6 @@ def session_timeout_check():
 @csrf.exempt
 @app.route('/import', methods=['GET','POST'])
 @login_required
-@admin_only
 def import_data():
     if request.method == 'POST':
         f = request.files.get('file')
@@ -468,7 +439,6 @@ def import_data():
 
 @app.route('/export/pdf')
 @login_required
-@admin_only
 def export_pdf():
     db = get_db()
     members = db.query(Member).all()
