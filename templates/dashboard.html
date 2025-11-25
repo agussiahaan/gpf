@@ -49,13 +49,13 @@
           <th>Komisi</th>
           <th>Pelayanan</th>
           <th>Status</th>
-          <th>Aksi</th>
+          {% if session.get('role')=='admin' %}<th>Aksi</th>{% endif %}
         </tr>
       </thead>
       <tbody>
 {% for m in members %}
   <tr>
-    <td>{% if session.get('role') == 'admin' %}{{ loop.index }}</td>
+    {% if session.get('role')=='admin' %}<td>{% if session.get('role') == 'admin' %}{{ loop.index }}</td>
 
     <td>{{ m.name }}</td>
 
@@ -107,7 +107,7 @@
         </button>
       </form>
       {% endif %}
-    </td>{% endif %}
+    </td>{% endif %}{% endif %}
   </tr>
 {% endfor %}
 </tbody>
