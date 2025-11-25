@@ -55,7 +55,7 @@
       <tbody>
 {% for m in members %}
   <tr>
-    <td>{{ loop.index }}</td>
+    <td>{% if session.get('role') == 'admin' %}{{ loop.index }}</td>
 
     <td>{{ m.name }}</td>
 
@@ -107,7 +107,7 @@
         </button>
       </form>
       {% endif %}
-    </td>
+    </td>{% endif %}
   </tr>
 {% endfor %}
 </tbody>
