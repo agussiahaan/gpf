@@ -230,8 +230,8 @@ def dashboard():
 
 @app.route('/add', methods=['GET','POST'])
 @login_required
-def add_member
-    if session.get('role')!='admin': return redirect(url_for('dashboard'))():
+def add_member():
+    if session.get('role')!='admin': return redirect(url_for('dashboard'))
     errors = {}
     if request.method == 'POST':
         name = request.form.get("name","").strip()
@@ -274,8 +274,8 @@ def add_member
     return render_template('add_member.html', services_list=services_list, selected_services=selected_services)
 @app.route('/member/<int:id>/edit', methods=['GET','POST'])
 @login_required
-def edit_member
-    if session.get('role')!='admin': return redirect(url_for('dashboard'))(id):
+def edit_member():
+    if session.get('role')!='admin': return redirect(url_for('dashboard'))
     services_list = ['Worship Leader','Singer','Usher / Penatalayan','Keyboard','Gitar','Bass','Drum','Multimedia','Soundsystem','Live Streaming','Lainnya']
     db = get_db()
     m = db.query(Member).get(id)
@@ -321,8 +321,8 @@ def users():
 
 @app.route('/member/<int:id>/delete', methods=['POST'])
 @admin_required
-def delete_member
-    if session.get('role')!='admin': return redirect(url_for('dashboard'))(id):
+def delete_member():
+    if session.get('role')!='admin': return redirect(url_for('dashboard'))
     db = get_db()
     m = db.query(Member).get(id)
     if m:
@@ -334,7 +334,7 @@ def delete_member
 ALLOWED_EXT = {'csv','xlsx'}
 @app.route('/export/<filetype>')
 @login_required
-def export_data
+def export_data():
     if session.get('role')!='admin': return redirect(url_for('dashboard'))(filetype):
     db = get_db()
     members = db.query(Member).all()
@@ -379,8 +379,8 @@ def session_timeout_check():
 @csrf.exempt
 @app.route('/import', methods=['GET','POST'])
 @login_required
-def import_data
-    if session.get('role')!='admin': return redirect(url_for('dashboard'))():
+def import_data():
+    if session.get('role')!='admin': return redirect(url_for('dashboard'))
     if request.method == 'POST':
         f = request.files.get('file')
         if not f:
@@ -444,8 +444,8 @@ def import_data
 
 @app.route('/export/pdf')
 @login_required
-def export_pdf
-    if session.get('role')!='admin': return redirect(url_for('dashboard'))():
+def export_pdf():
+    if session.get('role')!='admin': return redirect(url_for('dashboard'))
     db = get_db()
     members = db.query(Member).all()
 
