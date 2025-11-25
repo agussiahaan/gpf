@@ -35,8 +35,6 @@ class User(Base):
     role = Column(String(50), default='user')
     created_at = Column(String(50))
 
-
-
 class Member(Base):
     __tablename__ = 'members'
     id = Column(Integer, primary_key=True)
@@ -79,9 +77,30 @@ def create_default_admin():
 create_default_admin()
 # --- end auto-create ---
 
-
 # Flask app
 app = Flask(__name__)
+
+from functools import wraps
+from flask import abort
+
+def admin_only(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if session.get('role') != 'admin':
+            abort(403)
+        return f(*args, **kwargs)
+    return wrapper
+
+@app.before_request
+def ensure_role():
+    if session.get('username') and not session.get('role'):
+        if session.get('username') == 'admin':
+            session['role'] = 'admin'
+        elif session.get('username') == 'user':
+            session['role'] = 'user'
+        else:
+            session.setdefault('role', 'user')
+
 from datetime import timedelta
 app.permanent_session_lifetime = timedelta(minutes=10)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY','dev_secret_change_me')
@@ -106,7 +125,6 @@ def hitung_umur(birth):
 def inject_functions():
     return {'hitung_umur': hitung_umur}
 # -------------------------------------------------------------------------
-
 
 @app.context_processor
 def inject_csrf():
@@ -137,7 +155,6 @@ class ImportForm(FlaskForm):
     file = FileField('File', validators=[DataRequired()])
 
 # helpers
-
 
 def phone_exists(phone):
     db=get_db()
@@ -177,19 +194,33 @@ def admin_required(f):
     return wrapper
 
 # routes
+
 @app.route('/login', methods=['GET','POST'])
 def login():
-    if request.method=='POST':
-        username = request.form['username']
-        password = request.form['password']
-        u = get_user_by_credentials(username, password)
+    if request.method == 'POST':
+        username = request.form.get('username','').strip()
+        password = request.form.get('password','').strip()
+
+        # replace with actual credential check function if present
+        try:
+            u = get_user_by_credentials(username, password)
+        except Exception:
+            u = None
+
         if u:
-            session['user_id'] = u.id
-            session['username'] = u.username
-            session['role'] = u.role
-            flash('Berhasil login','success')
+            session['user_id'] = getattr(u, 'id', None)
+            session['username'] = getattr(u, 'username', username)
+            # If user model has role attribute use it, otherwise map by username
+            role_val = getattr(u, 'role', None)
+            if not role_val:
+                role_val = 'admin' if session.get('username') == 'admin' else 'user'
+            session['role'] = role_val
+
+            flash('Berhasil login', 'success')
             return redirect(url_for('dashboard'))
-        flash('Username atau password salah','danger')
+
+        flash('Username atau password salah', 'danger')
+
     return render_template('login_page.html')
 
 @app.route('/logout')
@@ -230,6 +261,7 @@ def dashboard():
 
 @app.route('/add', methods=['GET','POST'])
 @login_required
+@admin_only
 def add_member():
     errors = {}
     if request.method == 'POST':
@@ -273,6 +305,7 @@ def add_member():
     return render_template('add_member.html', services_list=services_list, selected_services=selected_services)
 @app.route('/member/<int:id>/edit', methods=['GET','POST'])
 @login_required
+@admin_only
 def edit_member(id):
     services_list = ['Worship Leader','Singer','Usher / Penatalayan','Keyboard','Gitar','Bass','Drum','Multimedia','Soundsystem','Live Streaming','Lainnya']
     db = get_db()
@@ -319,6 +352,7 @@ def users():
 
 @app.route('/member/<int:id>/delete', methods=['POST'])
 @admin_required
+@admin_only
 def delete_member(id):
     db = get_db()
     m = db.query(Member).get(id)
@@ -331,6 +365,7 @@ def delete_member(id):
 ALLOWED_EXT = {'csv','xlsx'}
 @app.route('/export/<filetype>')
 @login_required
+@admin_only
 def export_data(filetype):
     db = get_db()
     members = db.query(Member).all()
@@ -361,9 +396,6 @@ def export_data(filetype):
         buf.seek(0)
         return send_file(buf, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', download_name='gpf_members.xlsx', as_attachment=True)
 
-
-
-
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT',5000)))
 
@@ -371,10 +403,10 @@ if __name__ == '__main__':
 def session_timeout_check():
     session.modified = True
 
-
 @csrf.exempt
 @app.route('/import', methods=['GET','POST'])
 @login_required
+@admin_only
 def import_data():
     if request.method == 'POST':
         f = request.files.get('file')
@@ -435,10 +467,9 @@ def import_data():
 
     return render_template('import.html')
 
-
-
 @app.route('/export/pdf')
 @login_required
+@admin_only
 def export_pdf():
     db = get_db()
     members = db.query(Member).all()
